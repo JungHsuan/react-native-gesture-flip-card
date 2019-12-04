@@ -10,7 +10,8 @@ flip card animation using gesture for React Native
 ```
 
 ## Simple Preview
-![App preview](/screenshots/simple.gif)
+![App preview](/screenshots/example_1.gif)
+![App preview](/screenshots/example_2.gif)
 
 ## Minimal Usage
 ```javascript
