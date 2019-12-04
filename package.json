@@ -1,0 +1,30 @@
+{
+  "name": "rn-gesture-flip-card",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "prop-types": "^15.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JungHsuan/rn-gesture-flip-card.git"
+  },
+  "keywords": [
+    "react-native",
+    "flip-card",
+    "card-flip",
+    "card",
+    "flip",
+    "gesture"
+  ],
+  "author": "JH Lin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JungHsuan/rn-gesture-flip-card/issues"
+  },
+  "homepage": "https://github.com/JungHsuan/rn-gesture-flip-card#readme"
+}
