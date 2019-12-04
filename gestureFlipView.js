@@ -1,6 +1,11 @@
 import React from 'react';
-import {View, Animated, PanResponder, Platform, StyleSheet} from 'react-native';
+import {View, Animated, PanResponder, Platform, StyleSheet, YellowBox} from 'react-native';
 import PropTypes from 'prop-types';
+
+YellowBox.ignoreWarnings([
+  'The value `touchEvent.locationY` equals NaN or INF and will be replaced by `0`.',
+  'The value `touchEvent.locationX` equals NaN or INF and will be replaced by `0`.',
+]);
 
 class GestureFlipView extends React.Component {
   static defaultProps = {
