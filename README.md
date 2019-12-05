@@ -7,7 +7,7 @@ flip card animation using gesture for React Native
 ## Installation
 
 ```
-  npm install --save rn-gesture-flip-card
+  npm install --save react-native-gesture-flip-card
 ```
 
 ## Simple Preview
@@ -16,7 +16,7 @@ flip card animation using gesture for React Native
 
 ## Minimal Usage
 ```javascript
-import GestureFlipView from 'rn-gesture-flip-card';
+import GestureFlipView from 'react-native-gesture-flip-card';
 ```
 
 ```javascript
@@ -60,11 +60,11 @@ const renderBack = () => {
 | doFlip              | flip the card                   | number: 1 or -1        | 
 
 ```javascript
-  <GestureFlipView ref={(ref) => this.flipView = ref}
-    width={300} height={500}>
+<GestureFlipView ref={(ref) => this.flipView = ref}
+  width={300} height={500}>
     {renderBack()}
     {renderFront()}
-  </GestureFlipView>
+</GestureFlipView>
 ```
 ```javascript
 this.flipView.doFlip(1)  // counterclockwise
