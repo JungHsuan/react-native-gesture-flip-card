@@ -32,7 +32,6 @@ class GestureFlipView extends React.Component {
     this.isAnimating = false;
     this.isCardFaceSet = false;
     this.lastScrollX = 0;
-    this.reachLimit = false;
     this.flippedValue = null;
     this.isGestureMoving = false;
     this.prevdx = 0;
@@ -53,6 +52,14 @@ class GestureFlipView extends React.Component {
             this.flippedValue = value;
           });
         }
+      } else {
+        if (value < rightMidBound && value > leftMidBound) {
+          this.isCardFaceSet = false;
+          this.setState({cardFace: !this.state.cardFace}, () => {
+            // flip view
+            this.flippedValue = null;
+          });
+        }
       }
     });
   };
@@ -68,8 +75,7 @@ class GestureFlipView extends React.Component {
       : this.state.width * 0.1;
     const shouldPanRespons =
       Math.abs(gestureState.dx) >= threshold &&
-      !this.isAnimating &&
-      !this.reachLimit;
+      !this.isAnimating;
     return shouldPanRespons;
   };
 
@@ -77,7 +83,6 @@ class GestureFlipView extends React.Component {
   _handlePanResponderGrant = (evt, gestureState) => {
     this.isGestureMoving = true;
     this.isCardFaceSet = false;
-    this.reachLimit = false;
     if (this.state.cardFace) {
       this.lastScrollX = 0;
     } else {
@@ -87,13 +92,6 @@ class GestureFlipView extends React.Component {
 
   // when moving on responder.
   _handlePanResponderMove = (evt, gestureState) => {
-    if (this.flippedValue != null && this.isCardFaceSet) {
-      if (Math.abs(gestureState.dx) < Math.abs(this.prevdx)) {
-        this.reachLimit = true;
-        return;
-      }
-    }
-    this.prevdx = gestureState.dx;
     if (this.state.cardFace && this.flippedValue == null) {
       return Animated.event([null, {dx: this.state.scrollX}])(
         evt,
@@ -107,7 +105,7 @@ class GestureFlipView extends React.Component {
   _handlePanResponderEnd = (evt, gestureState) => {
     const {width} = this.state;
     const absVx = Math.abs(gestureState.vx);
-    const dx = this.reachLimit ? this.prevdx : gestureState.dx;
+    const dx = gestureState.dx;
     const absDx = Math.abs(dx);
     const direction = dx >= 0 ? 1 : -1;
     const goBack = absDx < width / 4 && absVx < 1.5;
@@ -133,9 +131,7 @@ class GestureFlipView extends React.Component {
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      // this.isCardFaceSet = true;
       this.isAnimating = false;
-      this.reachLimit = false;
       this.flippedValue = null;
       this.props.onFlipEnd && this.props.onFlipEnd();
     });
