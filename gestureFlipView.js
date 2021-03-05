@@ -1,12 +1,12 @@
-import React from 'react';
-import {View, Animated, PanResponder, Platform, StyleSheet, YellowBox} from 'react-native';
-import PropTypes from 'prop-types';
-
-YellowBox.ignoreWarnings([
-  'The value `touchEvent.locationY` equals NaN or INF and will be replaced by `0`.',
-  'The value `touchEvent.locationX` equals NaN or INF and will be replaced by `0`.',
-]);
-
+import React from "react";
+import {
+  View,
+  Animated,
+  PanResponder,
+  Platform,
+  StyleSheet,
+} from "react-native";
+import PropTypes from "prop-types";
 class GestureFlipView extends React.Component {
   static defaultProps = {
     perspective: -1000,
@@ -38,7 +38,7 @@ class GestureFlipView extends React.Component {
   }
 
   componentDidMount = () => {
-    this.state.scrollX.addListener(({value}) => {
+    this.state.scrollX.addListener(({ value }) => {
       const start = this.lastScrollX;
       const endRight = start + this.state.width;
       const endLeft = start - this.state.width;
@@ -47,7 +47,7 @@ class GestureFlipView extends React.Component {
       if (!this.isCardFaceSet) {
         if (value >= rightMidBound || value <= leftMidBound) {
           this.isCardFaceSet = true;
-          this.setState({cardFace: !this.state.cardFace}, () => {
+          this.setState({ cardFace: !this.state.cardFace }, () => {
             // flip view
             this.flippedValue = value;
           });
@@ -55,7 +55,7 @@ class GestureFlipView extends React.Component {
       } else {
         if (value < rightMidBound && value > leftMidBound) {
           this.isCardFaceSet = false;
-          this.setState({cardFace: !this.state.cardFace}, () => {
+          this.setState({ cardFace: !this.state.cardFace }, () => {
             // flip view
             this.flippedValue = null;
           });
@@ -74,8 +74,7 @@ class GestureFlipView extends React.Component {
       ? this.state.width * 0.05
       : this.state.width * 0.1;
     const shouldPanRespons =
-      Math.abs(gestureState.dx) >= threshold &&
-      !this.isAnimating;
+      Math.abs(gestureState.dx) >= threshold && !this.isAnimating;
     return shouldPanRespons;
   };
 
@@ -93,17 +92,16 @@ class GestureFlipView extends React.Component {
   // when moving on responder.
   _handlePanResponderMove = (evt, gestureState) => {
     if (this.state.cardFace && this.flippedValue == null) {
-      return Animated.event([null, {dx: this.state.scrollX}])(
-        evt,
-        gestureState,
-      );
+      return Animated.event([null, { dx: this.state.scrollX }], {
+        useNativeDriver: true,
+      })(evt, gestureState);
     } else {
       this.state.scrollX.setValue(this.lastScrollX + gestureState.dx);
     }
   };
 
   _handlePanResponderEnd = (evt, gestureState) => {
-    const {width} = this.state;
+    const { width } = this.state;
     const absVx = Math.abs(gestureState.vx);
     const dx = gestureState.dx;
     const absDx = Math.abs(dx);
@@ -114,7 +112,7 @@ class GestureFlipView extends React.Component {
   };
 
   doFlip = (direction, goBack) => {
-    const {width, scrollX, cardFace} = this.state;
+    const { width, scrollX, cardFace } = this.state;
     let toValue = cardFace
       ? goBack
         ? 0
@@ -138,7 +136,7 @@ class GestureFlipView extends React.Component {
   };
 
   renderFront = () => {
-    const {cardFace, height, width, scrollX} = this.state;
+    const { cardFace, height, width, scrollX } = this.state;
     return (
       <Animated.View
         style={[
@@ -149,20 +147,21 @@ class GestureFlipView extends React.Component {
             height: height,
             width: width,
             transform: [
-              {perspective: this.props.perspective},
+              { perspective: this.props.perspective },
               {
                 rotateY: scrollX.interpolate({
                   inputRange: [-width, 0, width],
                   outputRange: Platform.select({
-                    ios: ['180deg', '0deg', '-180deg'],
-                    android: ['-180deg', '0deg', '180deg'],
+                    ios: ["180deg", "0deg", "-180deg"],
+                    android: ["-180deg", "0deg", "180deg"],
                   }),
                 }),
               },
             ],
           },
-        ]}>
-        <View pointerEvents={cardFace ? 'auto' : 'none'}>
+        ]}
+      >
+        <View pointerEvents={cardFace ? "auto" : "none"}>
           {this.props.children[0]}
         </View>
       </Animated.View>
@@ -170,7 +169,7 @@ class GestureFlipView extends React.Component {
   };
 
   renderBack = () => {
-    const {cardFace, height, width, scrollX} = this.state;
+    const { cardFace, height, width, scrollX } = this.state;
     return (
       <Animated.View
         style={[
@@ -181,20 +180,21 @@ class GestureFlipView extends React.Component {
             height: height,
             width: width,
             transform: [
-              {perspective: this.props.perspective},
+              { perspective: this.props.perspective },
               {
                 rotateY: scrollX.interpolate({
                   inputRange: [-width, 0, width],
                   outputRange: Platform.select({
-                    ios: ['0deg', '-180deg', '-360deg'],
-                    android: ['0deg', '180deg', '360deg'],
+                    ios: ["0deg", "-180deg", "-360deg"],
+                    android: ["0deg", "180deg", "360deg"],
                   }),
                 }),
               },
             ],
           },
-        ]}>
-        <View pointerEvents={cardFace ? 'none' : 'auto'}>
+        ]}
+      >
+        <View pointerEvents={cardFace ? "none" : "auto"}>
           {this.props.children[1]}
         </View>
       </Animated.View>
@@ -202,11 +202,12 @@ class GestureFlipView extends React.Component {
   };
 
   render = () => {
-    const {height, width} = this.state;
+    const { height, width } = this.state;
     return (
       <View
         {...this._panResponder.panHandlers}
-        style={[styles.container, {height: height, width: width}]}>
+        style={[styles.container, { height: height, width: width }]}
+      >
         {this.renderBack()}
         {this.renderFront()}
       </View>
@@ -223,16 +224,16 @@ GestureFlipView.propTypes = {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
   },
   cardContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
 });
 
