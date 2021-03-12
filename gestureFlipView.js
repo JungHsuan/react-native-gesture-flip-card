@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle } from "react";
 import {
   View,
   Animated,
@@ -7,136 +7,173 @@ import {
   StyleSheet,
 } from "react-native";
 import PropTypes from "prop-types";
-class GestureFlipView extends React.Component {
-  static defaultProps = {
-    perspective: -1000,
-  };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      scrollX: new Animated.Value(0),
-      cardFace: true,
-      doReset: false,
-      width: Math.floor(props.width),
-      height: Math.floor(props.height),
-      canBackViewResponse: false,
-    };
+const GestureFlipView = React.forwardRef((props, ref) => {
+  const width = Math.floor(props.width);
+  const height = Math.floor(props.height);
+  const [cardFace, setCardFace] = useState(true);
 
-    this._panResponder = PanResponder.create({
-      onMoveShouldSetPanResponder: this._handleMoveShouldSetPanResponder,
-      onPanResponderGrant: this._handlePanResponderGrant,
-      onPanResponderMove: this._handlePanResponderMove,
-      onPanResponderRelease: this._handlePanResponderEnd,
-    });
-    this.isAnimating = false;
-    this.isCardFaceSet = false;
-    this.lastScrollX = 0;
-    this.flippedValue = null;
-    this.isGestureMoving = false;
-    this.prevdx = 0;
-  }
+  const isAnimating = useRef(false);
+  const isCardFaceSet = useRef(false);
+  const lastScrollX = useRef(0);
+  const flippedValue = useRef(null);
+  const cardFaceRef = useRef(true);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const enablePan = useRef(props.gestureEnabled);
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetResponderCapture: (evt) => true,
+      onMoveShouldSetResponderCapture: (evt) => true,
+      onMoveShouldSetPanResponder: handleMoveShouldSetPanResponder,
+      onPanResponderGrant: handlePanResponderGrant,
+      onPanResponderMove: handlePanResponderMove,
+      onPanResponderEnd: handlePanResponderEnd,
+    })
+  );
 
-  componentDidMount = () => {
-    this.state.scrollX.addListener(({ value }) => {
-      const start = this.lastScrollX;
-      const endRight = start + this.state.width;
-      const endLeft = start - this.state.width;
+  useEffect(() => {
+    cardFaceRef.current = cardFace;
+  }, [cardFace]);
+
+  useEffect(() => {
+    enablePan.current = props.gestureEnabled;
+  }, [props.gestureEnabled]);
+
+  useEffect(() => {
+    scrollX.addListener(({ value }) => {
+      const start = lastScrollX.current;
+      const endRight = start + width;
+      const endLeft = start - width;
       const rightMidBound = (endRight + start) / 2;
       const leftMidBound = (endLeft + start) / 2;
-      if (!this.isCardFaceSet) {
+
+      if (!isCardFaceSet.current) {
         if (value >= rightMidBound || value <= leftMidBound) {
-          this.isCardFaceSet = true;
-          this.setState({ cardFace: !this.state.cardFace }, () => {
-            // flip view
-            this.flippedValue = value;
-          });
+          isCardFaceSet.current = true;
+          flippedValue.current = value;
+          setCardFace((prev) => !prev);
         }
       } else {
         if (value < rightMidBound && value > leftMidBound) {
-          this.isCardFaceSet = false;
-          this.setState({ cardFace: !this.state.cardFace }, () => {
-            // flip view
-            this.flippedValue = null;
-          });
+          isCardFaceSet.current = false;
+          flippedValue.current = null;
+          setCardFace((prev) => !prev);
         }
       }
     });
-  };
 
-  _onStartShouldSetPanResponderCapture = (evt, gestureState) => {
-    return false;
-  };
+    return () => {
+      scrollX.removeAllListeners();
+    };
+  }, []);
 
   // if pan can response, decide move event can effect.
-  _handleMoveShouldSetPanResponder = (evt, gestureState) => {
-    const threshold = this.state.cardFace
-      ? this.state.width * 0.05
-      : this.state.width * 0.1;
-    const shouldPanRespons =
-      Math.abs(gestureState.dx) >= threshold && !this.isAnimating;
-    return shouldPanRespons;
-  };
+  function handleMoveShouldSetPanResponder(evt, gestureState) {
+    const dx = Math.abs(gestureState.dx);
+    const dy = Math.abs(gestureState.dy);
+    if (isAnimating.current || !enablePan.current) {
+      return false;
+    }
+    if (cardFace) {
+      return dx > 5;
+    } else {
+      return dx > dy;
+    }
+  }
 
   // call once, when move start effect.
-  _handlePanResponderGrant = (evt, gestureState) => {
-    this.isGestureMoving = true;
-    this.isCardFaceSet = false;
-    if (this.state.cardFace) {
-      this.lastScrollX = 0;
+  function handlePanResponderGrant(evt, gestureState) {
+    isCardFaceSet.current = false;
+    if (cardFaceRef.current) {
+      lastScrollX.current = 0;
     } else {
-      this.lastScrollX = this.state.scrollX._value;
+      lastScrollX.current = scrollX._value;
     }
-  };
+  }
 
   // when moving on responder.
-  _handlePanResponderMove = (evt, gestureState) => {
-    if (this.state.cardFace && this.flippedValue == null) {
-      return Animated.event([null, { dx: this.state.scrollX }], {
-        useNativeDriver: true,
-      })(evt, gestureState);
+  function handlePanResponderMove(evt, gestureState) {
+    if (cardFaceRef.current && flippedValue.current == null) {
+      // PanResponder run on JS thread, so we can't use native driver here.
+      return Animated.event([{ dx: scrollX }], {
+        useNativeDriver: false,
+      })(gestureState);
     } else {
-      this.state.scrollX.setValue(this.lastScrollX + gestureState.dx);
+      let _newState = {};
+      _newState.dx = lastScrollX.current + gestureState.dx;
+      return Animated.event([{ dx: scrollX }], {
+        useNativeDriver: false,
+      })(_newState);
     }
-  };
+  }
 
-  _handlePanResponderEnd = (evt, gestureState) => {
-    const { width } = this.state;
+  function handlePanResponderEnd(evt, gestureState) {
     const absVx = Math.abs(gestureState.vx);
     const dx = gestureState.dx;
     const absDx = Math.abs(dx);
     const direction = dx >= 0 ? 1 : -1;
-    const goBack = absDx < width / 4 && absVx < 1.5;
-    this.doFlip(direction, goBack);
-    this.isGestureMoving = false;
-  };
+    const goBack = absDx < width / 5 && absVx < 1.0;
+    flipWhileRelease(direction, goBack);
+  }
 
-  doFlip = (direction, goBack) => {
-    const { width, scrollX, cardFace } = this.state;
-    let toValue = cardFace
+  function flipWhileRelease(direction, goBack) {
+    let toValue = cardFaceRef.current
       ? goBack
         ? 0
         : direction * width
       : goBack
-      ? this.lastScrollX
-      : direction * width + this.lastScrollX;
-    if (this.flippedValue != null && cardFace) {
-      toValue = direction * width + this.lastScrollX;
+      ? lastScrollX.current
+      : direction * width + lastScrollX.current;
+    if (flippedValue.current != null && cardFaceRef.current) {
+      toValue = direction * width + lastScrollX.current;
     }
-    this.isAnimating = true;
+    isAnimating.current = true;
     Animated.timing(scrollX, {
       toValue: toValue,
       duration: 300,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
-      this.isAnimating = false;
-      this.flippedValue = null;
-      this.props.onFlipEnd && this.props.onFlipEnd();
+      isAnimating.current = false;
+      flippedValue.current = null;
+      props.onFlipEnd && props.onFlipEnd();
     });
-  };
+  }
 
-  renderFront = () => {
-    const { cardFace, height, width, scrollX } = this.state;
+  function Flip(direction) {
+    if (isAnimating.current) {
+      return;
+    }
+    isCardFaceSet.current = false;
+    if (cardFaceRef.current) {
+      lastScrollX.current = 0;
+      scrollX.setValue(0);
+    } else {
+      lastScrollX.current = scrollX._value;
+    }
+    let toValue = cardFaceRef.current
+      ? direction * width
+      : direction * width + lastScrollX.current;
+    if (flippedValue.current != null && cardFaceRef.current) {
+      toValue = direction * width + lastScrollX.current;
+    }
+    isAnimating.current = true;
+    Animated.timing(scrollX, {
+      toValue: toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => {
+      isAnimating.current = false;
+      flippedValue.current = null;
+      props.onFlipEnd && props.onFlipEnd();
+    });
+  }
+
+  useImperativeHandle(ref, () => ({
+    flipLeft: () => Flip(-1),
+    flipRight: () => Flip(1),
+  }));
+
+  const renderFront = () => {
     return (
       <Animated.View
         style={[
@@ -147,7 +184,7 @@ class GestureFlipView extends React.Component {
             height: height,
             width: width,
             transform: [
-              { perspective: this.props.perspective },
+              { perspective: props.perspective },
               {
                 rotateY: scrollX.interpolate({
                   inputRange: [-width, 0, width],
@@ -162,14 +199,13 @@ class GestureFlipView extends React.Component {
         ]}
       >
         <View pointerEvents={cardFace ? "auto" : "none"}>
-          {this.props.children[0]}
+          {props.children[0]}
         </View>
       </Animated.View>
     );
   };
 
-  renderBack = () => {
-    const { cardFace, height, width, scrollX } = this.state;
+  const renderBack = () => {
     return (
       <Animated.View
         style={[
@@ -180,7 +216,7 @@ class GestureFlipView extends React.Component {
             height: height,
             width: width,
             transform: [
-              { perspective: this.props.perspective },
+              { perspective: props.perspective },
               {
                 rotateY: scrollX.interpolate({
                   inputRange: [-width, 0, width],
@@ -195,39 +231,43 @@ class GestureFlipView extends React.Component {
         ]}
       >
         <View pointerEvents={cardFace ? "none" : "auto"}>
-          {this.props.children[1]}
+          {props.children[1]}
         </View>
       </Animated.View>
     );
   };
 
-  render = () => {
-    const { height, width } = this.state;
-    return (
-      <View
-        {...this._panResponder.panHandlers}
-        style={[styles.container, { height: height, width: width }]}
-      >
-        {this.renderBack()}
-        {this.renderFront()}
-      </View>
-    );
-  };
-}
+  return (
+    <View
+      {...panResponder.current?.panHandlers}
+      style={{
+        backgroundColor: "transparent",
+        justifyContent: "center",
+        alignItems: "center",
+        height: height,
+        width: width,
+      }}
+    >
+      {renderBack()}
+      {renderFront()}
+    </View>
+  );
+});
 
 GestureFlipView.propTypes = {
   onFlipEnd: PropTypes.func,
-  width: PropTypes.number,
-  height: PropTypes.number,
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired,
   perspective: PropTypes.number,
+  gestureEnabled: PropTypes.bool,
+};
+
+GestureFlipView.defaultProps = {
+  perspective: -1000,
+  gestureEnabled: true,
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "transparent",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   cardContainer: {
     justifyContent: "center",
     alignItems: "center",
