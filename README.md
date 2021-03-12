@@ -51,22 +51,26 @@ const renderBack = () => {
 | --------------------| ------------- | --------------------------------| ------------- | ------------- |
 | width               | number        | width of view                   |  true         |               |
 | height              | number        | height of view                  |  true         |               |
-| onFlipEnd           | function      | callback on end of flip         |               |               |
-| perspective         | number        | perspective of the view         |               | -1000         |
+| onFlipEnd           | function      | callback on end of flip         |  false        |               |
+| perspective         | number        | perspective of the view         |  false        | -1000         |
+| gestureEnabled      | bool          | enable or disable gestures      |  false        | true          |
 
 ## Method
 | name                | description                     | args                   |
 | --------------------| --------------------------------| ---------------------  |
-| doFlip              | flip the card                   | number: 1 or -1        | 
+| flipLeft            | flip the card counterclockwise  |                        |
+| flipRight           | flip the card clockwise         |                        |
 
 ```javascript
-<GestureFlipView ref={(ref) => this.flipView = ref}
-  width={300} height={500}>
-    {renderBack()}
-    {renderFront()}
-</GestureFlipView>
+<GestureFlipView
+  ref={(ref) => (viewRef.current = ref)}
+  gestureEnabled={enable}
+  width={300}
+  height={500}>
+  {renderBack()}
+  {renderFront()} />
 ```
 ```javascript
-this.flipView.doFlip(1)  // counterclockwise
-this.flipView.doFlip(-1) // clockwise
+viewRef.current.flipLeft();  // counterclockwise
+viewRef.current.flipRight(); // clockwise
 ```
