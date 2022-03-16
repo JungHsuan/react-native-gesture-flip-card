@@ -5,12 +5,14 @@ import {
   PanResponder,
   Platform,
   StyleSheet,
+  LogBox,
 } from "react-native";
 import PropTypes from "prop-types";
+LogBox.ignoreLogs([/equals NaN or INF and will be replaced by/]);
 
 const GestureFlipView = React.forwardRef((props, ref) => {
-  const width = Math.floor(props.width);
-  const height = Math.floor(props.height);
+  const width = useRef(Math.floor(props.width)).current;
+  const height = useRef(Math.floor(props.height)).current;
   const [cardFace, setCardFace] = useState(true);
 
   const isAnimating = useRef(false);
