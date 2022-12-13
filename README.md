@@ -2,7 +2,9 @@
 [![npm version](https://badge.fury.io/js/react-native-gesture-flip-card.svg)](https://badge.fury.io/js/react-native-gesture-flip-card)
 
 
-Flip card animation using gesture for React Native.
+A pure javascript implementation of a flip card animation using gesture for React Native.
+
+
 ### 2022-03-16
 1. Update example to use react-native 0.67.3
 2. Use `LogBox` to ignore unnecessary warnings. (To use `LogBox` you need to upgrade react-native to at least 0.63 )
