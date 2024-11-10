@@ -6,10 +6,10 @@ A pure javascript implementation of a flip card animation using gesture for Reac
 
 ## 2024-11-10
 
-1. Create a new example app 'app' and remove the old 'example'
-2. (Breaking change) 'renderBack' and 'renderFront' are passing through props instenad of passing by children.
-3. (new) Add a argument in 'onFlipEnd' function, it will return a boolean value(1: front and 0 for back) when the flip animation ended.
-4. (new) Add a new props: 'onFaceChanged' function, it will retrun a boolean value(1: front and 0 for back) when the face is changed.
+1. Create a new example app `app` and remove the old `example`
+2. (Breaking change) `renderBack` and `renderFront` are passing through props instenad of passing by children.
+3. (new) Add a argument in `onFlipEnd` function, it will return a boolean value(1: front and 0 for back) when the flip animation ended.
+4. (new) Add a new props: `onFaceChanged` function, it will retrun a boolean value(1: front and 0 for back) when the face is changed.
 
 ## 2022-03-16
 
@@ -20,6 +20,8 @@ A pure javascript implementation of a flip card animation using gesture for Reac
 
 ``` bash
   npm install --save react-native-gesture-flip-card
+  # or
+  yarn add react-native-gesture-flip-card
 ```
 
 ## Simple Preview
@@ -33,7 +35,7 @@ A pure javascript implementation of a flip card animation using gesture for Reac
 import GestureFlipView from 'react-native-gesture-flip-card';
 ```
 
-```javascript
+```jsx
 <View style={styles.container}>
   <GestureFlipView
     width={300}
@@ -88,11 +90,11 @@ const renderBack = () => {
 | flipLeft            | flip the card counterclockwise  |                        |
 | flipRight           | flip the card clockwise         |                        |
 
-```javascript
+```jsx
 <GestureFlipView
   ref={(ref) => (viewRef.current = ref)}
   {...} // skip showing other props
-  />
+/>
 
 // usage
 viewRef.current.flipLeft();  // counterclockwise
