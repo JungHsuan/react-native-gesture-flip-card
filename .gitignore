@@ -1,2 +1,3 @@
 node_modules/
 examples/package-lock.json
+app/node_modules/
