@@ -7,7 +7,7 @@ A pure javascript implementation of a flip card animation using gesture for Reac
 ## 2024-11-10
 
 1. Create a new example app `app` and remove the old `example`
-2. (Breaking change) `renderBack` and `renderFront` are passing through props instenad of passing by children.
+2. (Breaking change) `renderBack` and `renderFront` are passing through props instead of passing by children.
 3. (new) Add a argument in `onFlipEnd` function, it will return a boolean value(1: front and 0 for back) when the flip animation ended.
 4. (new) Add a new props: `onFaceChanged` function, it will retrun a boolean value(1: front and 0 for back) when the face is changed.
 
